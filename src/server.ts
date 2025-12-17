@@ -1,10 +1,11 @@
 import express from "express";
-import userRoutes from './routes/userRoutes.routes'; // Include the correct extension
+import routes from './routes/index.routes'; // Importa o arquivo index.routes.ts
 
 const app = express();
 app.use(express.json());
 
-app.use("/users", userRoutes);
+// Utiliza as rotas centralizadas no index.routes.ts
+app.use("/", routes);
 
 const PORT = 3000;
 app.listen(PORT, () =>
