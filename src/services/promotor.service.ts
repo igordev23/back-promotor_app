@@ -28,6 +28,14 @@ export class PromotorService {
       throw new Error(`Erro ao criar promotor: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  // Atualiza um promotor existente
+  async updatePromotor(id: string, promotor: Omit<Promotor, 'id'>): Promise<void> {
+    try {
+      await SupabaseRepository.promotores.update(id, promotor);
+    } catch (error) {
+      throw new Error(`Erro ao atualizar o promotor com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   // Atualiza a localização de um promotor
   async updatePromotorLocation(id: string, lat: number, lng: number): Promise<void> {

@@ -1,22 +1,27 @@
 import { Router } from 'express';
-import { PromotorController } from '../controllers/promotor.controller';
-import jornadaRoutes from './jornada.routes';
-import localizacaoRoutes from './localizacao.routes';
-import leadRoutes from './lead.routes';
+import { JornadaController } from '../controllers/jornada.controller';
+import { LocalizacaoController } from '../controllers/localizacao.controller';
+import { LeadController } from '../controllers/lead.controller';
 
 const router = Router();
-const promotorController = new PromotorController();
 
-// Rotas para Promotores
-router.get('/', (req, res) => promotorController.getAllPromotores(req, res)); // Lista todos os promotores
-router.get('/:id', (req, res) => promotorController.getPromotorById(req, res)); // Obtém um promotor pelo ID
-router.post('/', (req, res) => promotorController.createPromotor(req, res)); // Cria um novo promotor
-router.put('/:id/localizacao', (req, res) => promotorController.updatePromotorLocation(req, res)); // Atualiza a localização de um promotor
-router.delete('/:id', (req, res) => promotorController.deletePromotor(req, res)); // Exclui um promotor pelo ID
+const jornadaController = new JornadaController();
+const localizacaoController = new LocalizacaoController();
+const leadController = new LeadController();
 
-// Reutilização de rotas existentes
-router.use('/jornada', jornadaRoutes); // Rotas de Jornada
-router.use('/localizacao', localizacaoRoutes); // Rotas de Localização
-router.use('/leads', leadRoutes); // Rotas de Leads
+// Jornada
+router.post('/jornada/iniciar', jornadaController.registrarPonto);
+router.post('/jornada/finalizar', jornadaController.finalizarJornada);
+router.get('/jornada/status', jornadaController.status);
+
+// Localização (Promotor)
+router.post('/localizacao', localizacaoController.registerLocation);
+
+// Leads (Promotor)
+router.post('/leads', leadController.createLead);
+router.get('/leads', leadController.getLeadsByPromotor);
+router.get('/leads/:id', leadController.getLeadById);
+router.put('/leads/:id', leadController.updateLead);
+router.delete('/leads/:id', leadController.deleteLead);
 
 export default router;

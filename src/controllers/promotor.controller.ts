@@ -35,6 +35,17 @@ export class PromotorController {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
+  // Atualiza um promotor existente
+  async updatePromotor(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const promotorData = req.body;
+      await promotorService.updatePromotor(id, promotorData);
+      res.status(200).json({ message: 'Promotor atualizado com sucesso' });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  }
 
   // Atualiza a localização de um promotor
   async updatePromotorLocation(req: Request, res: Response): Promise<void> {

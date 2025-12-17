@@ -135,6 +135,17 @@ export const SupabaseRepository = {
       if (error) throw error;
       return data as Promotor;
     },
+    // Atualiza um promotor existente
+    async update(id: string, promotor: Omit<Promotor, 'id'>) {
+      const { data, error } = await supabase
+        .from('promotores')
+        .update(promotor)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Promotor;
+    },
 
     async updateLocation(id: string, lat: number, lng: number) {
       const { error } = await supabase
@@ -210,6 +221,27 @@ export const SupabaseRepository = {
         .insert([jornada]);
       if (error) throw error;
       return data;
+    },
+    // Finaliza uma jornada
+    async finalizarJornada(id: string) {
+      const { data, error } = await supabase
+        .from('jornadas')
+        .update({ statusJornada: 'finalizado' })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Jornada;
+    },
+    // Status atual da jornada
+    async status(id: string) {
+      const { data, error } = await supabase
+        .from('jornadas')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data as Jornada;
     },
     async getByPromotor(promotorId: string) {
       const { data, error } = await supabase

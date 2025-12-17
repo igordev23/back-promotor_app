@@ -14,7 +14,23 @@ export class JornadaService {
       throw new Error(`Erro ao registrar ponto na jornada: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-
+  // Finaliza uma jornada
+  async finalizarJornada(id: string): Promise<Jornada> {
+    try {
+      return await SupabaseRepository.jornada.finalizarJornada(id);
+    } catch (error) {
+      throw new Error(`Erro ao finalizar jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  // status atual da jornada
+  async status(id: string): Promise<Jornada> {
+    try {
+      return await SupabaseRepository.jornada.status(id);
+    } catch (error) {
+      throw new Error(`Erro ao obter status da jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  
   // Atualiza uma jornada existente
   async updateJornada(id: string, jornada: Omit<Jornada, 'id'>): Promise<Jornada> {
     try {

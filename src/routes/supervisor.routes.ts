@@ -1,24 +1,40 @@
 import { Router } from 'express';
 import { SupervisorController } from '../controllers/supervisor.controller';
-import localizacaoRoutes from './localizacao.routes';
-import leadRoutes from './lead.routes';
-import promotorRoutes from './promotor.routes';
+import { PromotorController } from '../controllers/promotor.controller';
+import { LocalizacaoController } from '../controllers/localizacao.controller';
+import { LeadController } from '../controllers/lead.controller';
 
 const router = Router();
+
 const supervisorController = new SupervisorController();
+const promotorController = new PromotorController();
+const localizacaoController = new LocalizacaoController();
+const leadController = new LeadController();
 
+// Dashboard
+router.get('/dashboard', supervisorController.getDashboardData);
 
-// 5.2.1 Dashboard
-// Passamos a referência da função. O Express cuidará de passar (req, res).
-router.get('/dashboard', supervisorController.getDashboardData.bind(supervisorController));
+// Promotores
+router.post('/promotores', promotorController.createPromotor);
+router.get('/promotores', promotorController.getAllPromotores);
+router.get('/promotores/:id', promotorController.getPromotorById);
+router.put('/promotores/:id', promotorController.updatePromotor);
+router.delete('/promotores/:id', promotorController.deletePromotor);
 
-// 5.2.2 Promotores
-router.use('/promotores', promotorRoutes); // Reutiliza as rotas de promotores definidas em promotor.routes.ts
+// Localização (Supervisor)
+router.get(
+  '/promotores/:id/localizacao-atual',
+  localizacaoController.getLastLocation
+);
+router.get(
+  '/promotores/:id/historico-localizacao',
+  localizacaoController.getLocationHistory
+);
 
-// 5.2.3 Localização
-router.use('/promotores', localizacaoRoutes); // Rotas de localização dentro do contexto de promotores
-
-// 5.2.4 Leads
-router.use('/leads', leadRoutes); // Rotas de leads
+// Leads (Supervisor)
+router.get('/leads', leadController.getLeadsByPromotor);
+router.get('/leads/:id', leadController.getLeadById);
+router.put('/leads/:id', leadController.updateLead);
+router.delete('/leads/:id', leadController.deleteLead);
 
 export default router;

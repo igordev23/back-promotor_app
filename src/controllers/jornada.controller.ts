@@ -13,6 +13,26 @@ export class JornadaController {
       res.status(500).json({ error: `Erro ao registrar ponto na jornada: ${error instanceof Error ? error.message : String(error)}` });
     }
   }
+  // Finaliza uma jornada
+  async finalizarJornada(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const jornada = await jornadaService.finalizarJornada(id);
+      res.status(200).json(jornada);
+    } catch (error) {
+      res.status(500).json({ error: `Erro ao finalizar jornada com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
+  // Status atual da jornada
+  async status(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const jornada = await jornadaService.status(id);
+      res.status(200).json(jornada);
+    } catch (error) {
+      res.status(500).json({ error: `Erro ao obter status da jornada com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
 
   // Atualiza uma jornada existente
   async updateJornada(req: Request, res: Response): Promise<void> {
