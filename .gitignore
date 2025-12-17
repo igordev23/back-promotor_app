@@ -17,3 +17,7 @@ firebase.json
 
 database-debug.log
 
+# Supabase
+
+./src/config/supabase.ts
+
