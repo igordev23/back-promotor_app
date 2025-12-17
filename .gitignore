@@ -1,0 +1,19 @@
+# Node modules
+
+node_modules
+
+# Database rules
+
+database.rules.json
+
+# Environment variables
+.env
+
+# Firebase.json
+
+firebase.json
+
+# Database debug
+
+database-debug.log
+
