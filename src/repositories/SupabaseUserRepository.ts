@@ -278,6 +278,22 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
       if (error) throw error;
       return data as Lead;
     },
+    async getBySupervisor(supervisorId: string) {
+  const { data, error } = await supabase
+    .from('leads')
+    .select(`
+      *,
+      promotores!inner (
+        id,
+        supervisor_id
+      )
+    `)
+    .eq('promotores.supervisor_id', supervisorId)
+    .order('criado_em', { ascending: false });
+
+  if (error) throw error;
+  return data;
+},
 
     async getByPromotor(promotorId: string) {
       const { data, error } = await supabase

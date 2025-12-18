@@ -39,6 +39,59 @@ export class LeadController {
     }
   }
 
+
+async getLeadsByPromotorSupervisor(req: Request, res: Response) {
+  try {
+    const supervisorId = req.user!.id;
+    const { id: promotorId } = req.params;
+
+    const leads = await leadService.getLeadsByPromotorSupervisor(
+      supervisorId,
+      promotorId
+    );
+
+    res.json(leads);
+  } catch (error) {
+    res.status(403).json({
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+async getAllLeadsDoSupervisor(req: Request, res: Response) {
+  try {
+    const supervisorId = req.user!.id;
+
+    const leads = await leadService.getAllLeadsBySupervisor(supervisorId);
+
+    res.json(leads);
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async getLeadByIdSupervisor(req: Request, res: Response) {
+  try {
+    const supervisorId = req.user!.id;
+    const { id } = req.params;
+
+    const lead = await leadService.getLeadByIdSupervisor(
+      supervisorId,
+      id
+    );
+
+    res.json(lead);
+  } catch (error) {
+    res.status(403).json({
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+
+
+
   // Obtém um lead pelo ID
   async getLeadById(req: Request, res: Response): Promise<void> {
     try {

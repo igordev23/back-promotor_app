@@ -47,6 +47,38 @@ export class LeadService {
     }
   }
 
+  async getAllLeadsBySupervisor(supervisorId: string) {
+  return SupabaseRepository.leads.getBySupervisor(supervisorId);
+}
+
+async getLeadsByPromotorSupervisor(
+  supervisorId: string,
+  promotorId: string
+) {
+  const promotor = await SupabaseRepository.promotores.getById(promotorId);
+
+  if (promotor.supervisorId !== supervisorId) {
+    throw new Error('Acesso negado a este promotor');
+  }
+
+  return SupabaseRepository.leads.getByPromotor(promotorId);
+}
+
+async getLeadByIdSupervisor(supervisorId: string, leadId: string) {
+  const lead = await SupabaseRepository.leads.getById(leadId);
+
+  const promotor = await SupabaseRepository.promotores.getById(
+    lead.criadoPor
+  );
+
+  if (promotor.supervisorId !== supervisorId) {
+    throw new Error('Acesso negado a este lead');
+  }
+
+  return lead;
+}
+
+
   // Exclui um lead pelo ID
   async deleteLead(id: string): Promise<void> {
     try {

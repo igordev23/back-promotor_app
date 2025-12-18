@@ -61,17 +61,23 @@ router.get(
   localizacaoController.getLocationHistory
 );
 
-// Leads
+// Leads (Supervisor)
 router.get(
   '/leads',
   authMiddleware,
-  leadController.getLeadsByPromotor
+  leadController.getAllLeadsDoSupervisor
 );
 
 router.get(
   '/leads/:id',
   authMiddleware,
-  leadController.getLeadById
+  leadController.getLeadByIdSupervisor
+);
+
+router.get(
+  '/promotores/:id/leads',
+  authMiddleware,
+  leadController.getLeadsByPromotorSupervisor
 );
 
 export default router;
