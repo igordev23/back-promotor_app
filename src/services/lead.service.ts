@@ -1,15 +1,24 @@
 import { SupabaseRepository } from '../repositories/SupabaseUserRepository';
 import { Lead } from '../types/lead';
+import { CreateLeadDTO } from '../dto/create-lead.dto';
 
 export class LeadService {
   // Cria um novo lead
-  async createLead(lead: Omit<Lead, 'id'>): Promise<Lead> {
+  async createLead(
+    promotorId: string,
+    data: CreateLeadDTO
+  ): Promise<Lead> {
     try {
-      return await SupabaseRepository.leads.create(lead);
+      return await SupabaseRepository.leads.create(promotorId, data);
     } catch (error) {
-      throw new Error(`Erro ao criar lead: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Erro ao criar lead: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
   }
+
 
   // Atualiza um lead existente
   async updateLead(id: string, lead: Omit<Lead, 'id'>): Promise<Lead> {

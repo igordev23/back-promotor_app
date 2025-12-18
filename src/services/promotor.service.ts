@@ -12,6 +12,16 @@ export class PromotorService {
       throw new Error(`Erro ao buscar promotores: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  async getPromotoresBySupervisor(supervisorId: string): Promise<Promotor[]> {
+  try {
+    return await SupabaseRepository.promotores.getBySupervisorId(supervisorId);
+  } catch (error) {
+    throw new Error(
+      `Erro ao buscar promotores do supervisor ${supervisorId}`
+    );
+  }
+}
+
 
   // Obtém um promotor pelo ID
   async getPromotorById(id: string): Promise<Promotor> {

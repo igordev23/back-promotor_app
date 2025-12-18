@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { JornadaController } from '../controllers/jornada.controller';
 import { LocalizacaoController } from '../controllers/localizacao.controller';
 import { LeadController } from '../controllers/lead.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/jornada/status', jornadaController.status);
 
 // Localização (Promotor)
 router.post('/localizacao', localizacaoController.registerLocation);
-
+router.use(authMiddleware);
 // Leads (Promotor)
 router.post('/leads', leadController.createLead);
 router.get('/leads', leadController.getLeadsByPromotor);

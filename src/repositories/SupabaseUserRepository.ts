@@ -7,8 +7,7 @@ import { Jornada } from '../types/jornada';
 import { Supervisor } from '../types/supervisor';
 import { CreateSupervisorDTO } from '../dto/create-supervisor.dto';
 import { DashboardData } from '../types/dashboard';
-import { update } from 'firebase/database';
-
+import { CreateLeadDTO } from '../dto/create-lead.dto';
 
 
 export const SupabaseRepository = {
@@ -106,6 +105,16 @@ promotores: {
     if (error) throw error;
     return data as Promotor[];
   },
+  async getBySupervisorId(supervisorId: string) {
+    const { data, error } = await supabase
+      .from('promotores')
+      .select('*')
+      .eq('supervisor_id', supervisorId);
+
+    if (error) throw error;
+    return data as Promotor[];
+  },
+
 
   async getById(id: string) {
     const { data, error } = await supabase
@@ -239,15 +248,26 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
 
   // --- MÉTODOS PARA LEADS ---
   leads: {
-    async create(lead: Omit<Lead, 'id'>) {
-      const { data, error } = await supabase
-        .from('leads')
-        .insert([lead])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Lead;
-    },
+    async create(
+    promotorId: string,
+    data: CreateLeadDTO
+  ): Promise<Lead> {
+    const { data: lead, error } = await supabase
+      .from('leads')
+      .insert({
+        nome: data.nome,
+        telefone: data.telefone,
+        cpf: data.cpf,
+        criado_por: promotorId,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return lead as Lead;
+  },
+
     async update(id: string, lead: Omit<Lead, 'id'>) {
       const { data, error } = await supabase
         .from('leads')

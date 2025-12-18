@@ -5,12 +5,15 @@ const leadService = new LeadService();
 
 export class LeadController {
   // Cria um novo lead
-  async createLead(req: Request, res: Response): Promise<void> {
+    async createLead(req: Request, res: Response): Promise<void> {
     try {
-      const lead = await leadService.createLead(req.body);
+      const promotorId = req.user!.id; // 🔥 vem do token
+      const lead = await leadService.createLead(promotorId, req.body);
       res.status(201).json(lead);
     } catch (error) {
-      res.status(500).json({ error: `Erro ao criar lead: ${error instanceof Error ? error.message : String(error)}` });
+      res.status(500).json({
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
