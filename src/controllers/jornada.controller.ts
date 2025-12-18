@@ -6,33 +6,73 @@ const jornadaService = new JornadaService();
 export class JornadaController {
   // Registra um novo ponto na jornada
   async registrarPonto(req: Request, res: Response): Promise<void> {
-    try {
-      const jornada = await jornadaService.registrarPonto(req.body);
-      res.status(201).json(jornada);
-    } catch (error) {
-      res.status(500).json({ error: `Erro ao registrar ponto na jornada: ${error instanceof Error ? error.message : String(error)}` });
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Usuário não autenticado' });
+      return;
     }
+
+    const promotorId = req.user.id; // ✅ string UUID
+
+    const jornada = await jornadaService.registrarPonto(promotorId);
+
+    res.status(201).json(jornada);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : JSON.stringify(error),
+    });
   }
-  // Finaliza uma jornada
-  async finalizarJornada(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const jornada = await jornadaService.finalizarJornada(id);
-      res.status(200).json(jornada);
-    } catch (error) {
-      res.status(500).json({ error: `Erro ao finalizar jornada com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
+}
+
+// Finaliza a jornada ATIVA do promotor
+async finalizarJornada(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Usuário não autenticado' });
+      return;
     }
+
+    const promotorId = req.user.id;
+
+    const jornada = await jornadaService.finalizarJornada(promotorId);
+
+    res.status(200).json(jornada);
+  } catch (error) {
+    console.error('ERRO REAL:', error);
+    res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : JSON.stringify(error),
+    });
   }
+}
   // Status atual da jornada
-  async status(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const jornada = await jornadaService.status(id);
-      res.status(200).json(jornada);
-    } catch (error) {
-      res.status(500).json({ error: `Erro ao obter status da jornada com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
+  // Status atual da jornada (PROMOTOR)
+async status(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Usuário não autenticado' });
+      return;
     }
+
+    const promotorId = req.user.id;
+
+    const jornada = await jornadaService.status(promotorId);
+
+    res.status(200).json(jornada);
+  } catch (error) {
+    res.status(500).json({
+      error:
+        error instanceof Error ? error.message : String(error),
+    });
   }
+}
+
 
   // Atualiza uma jornada existente
   async updateJornada(req: Request, res: Response): Promise<void> {

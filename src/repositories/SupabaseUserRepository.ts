@@ -323,18 +323,27 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
 
   // --- MÉTODOS PARA JORNADA ---
   jornada: {
-    async registrarPonto(jornada: Jornada) {
-      const { data, error } = await supabase
-        .from('jornadas')
-        .insert([jornada]);
-      if (error) throw error;
-      return data;
-    },
+    async registrarPonto(data: {
+    promotor_id: string;
+    status: 'ativo' | 'inativo';
+  }) {
+    const { data: jornada, error } = await supabase
+      .from('jornadas')
+      .insert([data])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return jornada;
+  },
+
     // Finaliza uma jornada
     async finalizarJornada(id: string) {
       const { data, error } = await supabase
         .from('jornadas')
-        .update({ statusJornada: 'finalizado' })
+        .update({ status: 'inativo',
+          fim: new Date().toISOString(),
+         })
         .eq('id', id)
         .select()
         .single();
@@ -342,15 +351,18 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
       return data as Jornada;
     },
     // Status atual da jornada
-    async status(id: string) {
-      const { data, error } = await supabase
-        .from('jornadas')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return data as Jornada;
-    },
+   async getJornadaAtiva(promotorId: string) {
+    const { data, error } = await supabase
+      .from('jornadas')
+      .select('*')
+      .eq('promotor_id', promotorId)
+      .eq('status', 'ativo')
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
     async getByPromotor(promotorId: string) {
       const { data, error } = await supabase
         .from('jornadas')

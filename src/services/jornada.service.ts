@@ -3,29 +3,40 @@ import { Jornada } from '../types/jornada';
 
 export class JornadaService {
   // Registra um novo ponto na jornada
-  async registrarPonto(jornada: Jornada): Promise<Jornada> {
-    try {
-      const result = await SupabaseRepository.jornada.registrarPonto(jornada);
-      if (!result) {
-        throw new Error('Falha ao registrar ponto na jornada');
-      }
-      return result;
-    } catch (error) {
-      throw new Error(`Erro ao registrar ponto na jornada: ${error instanceof Error ? error.message : String(error)}`);
+  async registrarPonto(promotorId: string) {
+    // 1️⃣ Verifica se já existe jornada ativa
+    const jornadaAtiva =
+      await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
+
+    if (jornadaAtiva) {
+      throw new Error('Já existe uma jornada ativa');
     }
+
+    // 2️⃣ Cria nova jornada
+    return await SupabaseRepository.jornada.registrarPonto({
+      promotor_id: promotorId,
+      status: 'ativo',
+    });
   }
-  // Finaliza uma jornada
-  async finalizarJornada(id: string): Promise<Jornada> {
-    try {
-      return await SupabaseRepository.jornada.finalizarJornada(id);
-    } catch (error) {
-      throw new Error(`Erro ao finalizar jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+
+  // Finaliza a jornada ativa do promotor
+async finalizarJornada(promotorId: string): Promise<Jornada> {
+  // 1️⃣ Busca jornada ativa
+  const jornadaAtiva =
+    await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
+
+  if (!jornadaAtiva) {
+    throw new Error('Não existe jornada ativa para este promotor');
   }
+
+  // 2️⃣ Finaliza a jornada encontrada
+  return await SupabaseRepository.jornada.finalizarJornada(jornadaAtiva.id);
+}
+
   // status atual da jornada
   async status(id: string): Promise<Jornada> {
     try {
-      return await SupabaseRepository.jornada.status(id);
+      return await SupabaseRepository.jornada.getJornadaAtiva(id);
     } catch (error) {
       throw new Error(`Erro ao obter status da jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
     }

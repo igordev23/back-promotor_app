@@ -5,7 +5,7 @@ import { LeadController } from '../controllers/lead.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
-
+router.use(authMiddleware);
 const jornadaController = new JornadaController();
 const localizacaoController = new LocalizacaoController();
 const leadController = new LeadController();
@@ -17,7 +17,7 @@ router.get('/jornada/status', jornadaController.status);
 
 // Localização (Promotor)
 router.post('/localizacao', localizacaoController.registerLocation);
-router.use(authMiddleware);
+
 // Leads (Promotor)
 router.post('/leads', leadController.createLead);
 router.get('/leads', leadController.getLeadsByPromotor);
