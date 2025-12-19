@@ -33,15 +33,25 @@ async finalizarJornada(promotorId: string): Promise<Jornada> {
   return await SupabaseRepository.jornada.finalizarJornada(jornadaAtiva.id);
 }
 
-  // status atual da jornada
-  async status(id: string): Promise<Jornada> {
-    try {
-      return await SupabaseRepository.jornada.getJornadaAtiva(id);
-    } catch (error) {
-      throw new Error(`Erro ao obter status da jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+  // Status atual da jornada
+async status(id: string): Promise<Jornada | null> {
+  try {
+    const jornadaAtiva = await SupabaseRepository.jornada.getJornadaAtiva(id);
+
+    if (!jornadaAtiva) {
+      return null; // Retorna null se não houver jornada ativa
     }
+
+    return jornadaAtiva; // Retorna a jornada ativa encontrada
+  } catch (error) {
+    throw new Error(
+      `Erro ao obter status da jornada com ID ${id}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
-  
+}
+
   // Atualiza uma jornada existente
   async updateJornada(id: string, jornada: Omit<Jornada, 'id'>): Promise<Jornada> {
     try {

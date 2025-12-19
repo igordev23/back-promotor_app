@@ -3,17 +3,21 @@ import { Localizacao } from '../types/localizacao';
 
 export class LocalizacaoService {
   // Registra uma nova localização
-  async registrarLocalizacao(localizacao: Localizacao): Promise<Localizacao> {
-    try {
-      const result = await SupabaseRepository.localizacao.registrar(localizacao);
-      if (!result) {
-        throw new Error('Falha ao registrar localização: resultado nulo');
-      }
-      return result;
-    } catch (error) {
-      throw new Error(`Erro ao registrar localização: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
+  async registrarLocalizacao(
+  promotorId: string,
+  latitude: number,
+  longitude: number
+): Promise<Localizacao> {
+  const localizacao: Localizacao = {
+    promotorId,
+    latitude,
+    longitude,
+    registrado_em: new Date().toISOString(),
+  };
+
+  return await SupabaseRepository.localizacao.registrar(localizacao);
+}
+
 
   // Atualiza uma localização existente
   async updateLocalizacao(id: string, localizacao: Omit<Localizacao, 'id'>): Promise<Localizacao> {

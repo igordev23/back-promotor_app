@@ -8,7 +8,20 @@ import { Supervisor } from '../types/supervisor';
 import { CreateSupervisorDTO } from '../dto/create-supervisor.dto';
 import { DashboardData } from '../types/dashboard';
 import { CreateLeadDTO } from '../dto/create-lead.dto';
+function mapLeadFromDB(data: any): Lead {
+  return {
+    id: data.id,
+    nome: data.nome,
+    telefone: data.telefone,
+    cpf: data.cpf,
+    criadoPor: data.criado_por,
+    criadoEm: new Date(data.criado_em).getTime(),
+  };
+}
 
+function mapLeadsFromDB(data: any[]): Lead[] {
+  return data.map(mapLeadFromDB);
+}
 
 export const SupabaseRepository = {
 
@@ -200,13 +213,25 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
 
   // --- MÉTODOS PARA LOCALIZAÇÃO ---
   localizacao: {
-    async registrar(localizacao: Localizacao) {
-      const { data, error } = await supabase
-        .from('localizacoes')
-        .insert([localizacao]);
-      if (error) throw error;
-      return data;
-    },
+   async registrar(localizacao: Localizacao) {
+  const { data, error } = await supabase
+    .from('localizacoes')
+    .insert([
+      {
+        promotor_id: localizacao.promotorId,
+        latitude: localizacao.latitude,
+        longitude: localizacao.longitude,
+        
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Localizacao;
+}
+
+,
     async update(id: string, localizacao: Omit<Localizacao, 'id'>) {
       const { data, error } = await supabase
         .from('localizacoes')
@@ -248,7 +273,8 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
 
   // --- MÉTODOS PARA LEADS ---
   leads: {
-    async create(
+  /* ---------- CREATE ---------- */
+  async create(
     promotorId: string,
     data: CreateLeadDTO
   ): Promise<Lead> {
@@ -265,61 +291,120 @@ async updateLocalizacao(id: string, lat: number, lng: number) {
 
     if (error) throw error;
 
-    return lead as Lead;
+    return mapLeadFromDB(lead);
   },
 
-    async update(id: string, lead: Omit<Lead, 'id'>) {
-      const { data, error } = await supabase
-        .from('leads')
-        .update(lead)
-        .eq('id', id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Lead;
-    },
-    async getBySupervisor(supervisorId: string) {
-  const { data, error } = await supabase
-    .from('leads')
-    .select(`
-      *,
-      promotores!inner (
-        id,
-        supervisor_id
-      )
-    `)
-    .eq('promotores.supervisor_id', supervisorId)
-    .order('criado_em', { ascending: false });
+  /* ---------- UPDATE ---------- */
+  async update(
+    promotorId: string,
+    id: string,
+    lead: Omit<Lead, 'id' | 'criadoPor' | 'criadoEm'>
+  ): Promise<Lead> {
+    const existingLead = await this.getById(promotorId, id);
 
-  if (error) throw error;
-  return data;
+    if (existingLead.criadoPor !== promotorId) {
+      throw new Error('Acesso negado ao lead');
+    }
+
+    const { data, error } = await supabase
+      .from('leads')
+      .update({
+        nome: lead.nome,
+        telefone: lead.telefone,
+        cpf: lead.cpf,
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return mapLeadFromDB(data);
+  },
+
+  /* ---------- GET BY PROMOTOR ---------- */
+  async getByPromotor(promotorId: string): Promise<Lead[]> {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('criado_por', promotorId);
+
+    if (error) throw error;
+
+    return mapLeadsFromDB(data);
+  },
+
+  /* ---------- GET BY ID (PROMOTOR) ---------- */
+  async getById(
+    promotorId: string,
+    id: string
+  ): Promise<Lead> {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    if (data.criado_por !== promotorId) {
+      throw new Error('Acesso negado ao lead');
+    }
+
+    return mapLeadFromDB(data);
+  },
+
+  /* ---------- GET BY ID (SUPERVISOR) ---------- */
+  async getByIdSupervisor(id: string): Promise<Lead> {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return mapLeadFromDB(data);
+  },
+
+  /* ---------- GET ALL BY SUPERVISOR ---------- */
+  async getBySupervisor(supervisorId: string): Promise<Lead[]> {
+    const { data, error } = await supabase
+      .from('leads')
+      .select(`
+        *,
+        promotores!inner (
+          id,
+          supervisor_id
+        )
+      `)
+      .eq('promotores.supervisor_id', supervisorId)
+      .order('criado_em', { ascending: false });
+
+    if (error) throw error;
+
+    return mapLeadsFromDB(data);
+  },
+
+  /* ---------- DELETE ---------- */
+  async delete(
+    promotorId: string,
+    id: string
+  ): Promise<void> {
+    const lead = await this.getById(promotorId, id);
+
+    if (lead.criadoPor !== promotorId) {
+      throw new Error('Acesso negado ao lead');
+    }
+
+    const { error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  },
 },
-
-    async getByPromotor(promotorId: string) {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('criadoPor', promotorId);
-      if (error) throw error;
-      return data as Lead[];
-    },
-    async getById(id: string) {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return data as Lead;
-    },
-    async delete(id: string) {
-      const { error } = await supabase
-        .from('leads')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    },
-  },
 
   // --- MÉTODOS PARA JORNADA ---
   jornada: {

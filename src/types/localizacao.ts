@@ -1,6 +1,6 @@
 export interface Localizacao {
-  idPromotor: string;
+  promotorId: string;
   latitude: number;
   longitude: number;
-  timestamp: number;
+  registrado_em: string;
 }
