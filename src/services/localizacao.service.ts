@@ -2,64 +2,69 @@ import { SupabaseRepository } from '../repositories/SupabaseUserRepository';
 import { Localizacao } from '../types/localizacao';
 
 export class LocalizacaoService {
-  // Registra uma nova localização
   async registrarLocalizacao(
-  promotorId: string,
-  latitude: number,
-  longitude: number
-): Promise<Localizacao> {
-  const localizacao: Localizacao = {
-    promotorId,
-    latitude,
-    longitude,
-    registrado_em: new Date().toISOString(),
-  };
+    promotorId: string,
+    latitude: number,
+    longitude: number
+  ): Promise<Localizacao> {
+    const localizacaoData: Omit<Localizacao, 'id'> = {
+      promotorId,
+      latitude,
+      longitude,
+      registrado_em: new Date().toISOString(),
+    };
 
-  return await SupabaseRepository.localizacao.registrar(localizacao);
-}
+    // 1. Create the new location entry
+    const novaLocalizacao = await SupabaseRepository.localizacao.create(localizacaoData);
 
+    // 2. Update the promoter's last location
+    const ultimaLocalizacao = {
+      lat: latitude,
+      lng: longitude,
+      timestamp: new Date(novaLocalizacao.registrado_em).getTime(),
+    };
 
-  // Atualiza uma localização existente
-  async updateLocalizacao(id: string, localizacao: Omit<Localizacao, 'id'>): Promise<Localizacao> {
-    try {
-      return await SupabaseRepository.localizacao.update(id, localizacao);
-    } catch (error) {
-      throw new Error(`Erro ao atualizar localização com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    await SupabaseRepository.promotores.update(promotorId, {
+      ultimaLocalizacao: ultimaLocalizacao,
+    });
+
+    return novaLocalizacao;
   }
 
-  // Obtém todas as localizações de um promotor
+  async updateLocalizacao(id: string, localizacao: Partial<Omit<Localizacao, 'id'>>): Promise<Localizacao> {
+    const existingLocalizacao = await SupabaseRepository.localizacao.getById(id);
+    if (!existingLocalizacao) {
+      throw new Error(`Localização com ID ${id} não encontrada.`);
+    }
+    return await SupabaseRepository.localizacao.update(id, localizacao);
+  }
+
   async getLocalizacoesHistoricoByPromotor(promotorId: string): Promise<Localizacao[]> {
-    try {
-      return await SupabaseRepository.localizacao.getByPromotor(promotorId);
-    } catch (error) {
-      throw new Error(`Erro ao buscar localizações do promotor com ID ${promotorId}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    return await SupabaseRepository.localizacao.getHistoricoByPromotorId(promotorId);
   }
 
-  // Obtém uma localização específica pelo ID
   async getLocalizacaoById(id: string): Promise<Localizacao> {
-    try {
-      return await SupabaseRepository.localizacao.getById(id);
-    } catch (error) {
-      throw new Error(`Erro ao buscar localização com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    const localizacao = await SupabaseRepository.localizacao.getById(id);
+    if (!localizacao) {
+      throw new Error(`Localização com ID ${id} não encontrada.`);
     }
+    return localizacao;
   }
 
-  // Exclui uma localização pelo ID
   async deleteLocalizacao(id: string): Promise<void> {
-    try {
-      await SupabaseRepository.localizacao.delete(id);
-    } catch (error) {
-      throw new Error(`Erro ao excluir localização com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    const existingLocalizacao = await SupabaseRepository.localizacao.getById(id);
+    if (!existingLocalizacao) {
+      throw new Error(`Localização com ID ${id} não encontrada.`);
     }
+    await SupabaseRepository.localizacao.delete(id);
   }
+
   async getLastLocalizacaoByPromotor(promotorId: string): Promise<Localizacao | null> {
-    try {
-      const localizacoes = await SupabaseRepository.localizacao.getByPromotor(promotorId);
-      return localizacoes && localizacoes.length > 0 ? localizacoes[localizacoes.length - 1] : null;
-    } catch (error) {
-      throw new Error(`Erro ao buscar última localização do promotor com ID ${promotorId}: ${error instanceof Error ? error.message : String(error)}`);
+    const localizacoes = await SupabaseRepository.localizacao.getHistoricoByPromotorId(promotorId);
+    if (localizacoes.length === 0) {
+      return null;
     }
+    // Return the last element of the array
+    return localizacoes[localizacoes.length - 1];
   }
 }

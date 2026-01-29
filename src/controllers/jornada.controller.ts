@@ -14,12 +14,15 @@ export class JornadaController {
 
       const promotorId = req.user.id; // ✅ string UUID
 
-      const jornada = await jornadaService.registrarPonto(promotorId);
+      const jornada = await jornadaService.iniciarJornada(promotorId);
 
       // Formata a data de início antes de retornar
-      jornada.inicio = formatarParaBrasil(jornada.inicio);
+      const jornadaFormatada = {
+        ...jornada,
+        inicio: formatarParaBrasil(new Date(jornada.inicio)),
+      };
 
-      res.status(201).json(jornada);
+      res.status(201).json(jornadaFormatada);
     } catch (error) {
       console.error(error);
       res.status(500).json({
@@ -73,7 +76,7 @@ async status(req: Request, res: Response): Promise<void> {
 
     const promotorId = req.user.id;
 
-    const jornada = await jornadaService.status(promotorId);
+    const jornada = await jornadaService.getStatusJornada(promotorId);
 
     if (!jornada) {
       res.status(404).json({ message: 'Nenhuma jornada ativa encontrada para este promotor.' });

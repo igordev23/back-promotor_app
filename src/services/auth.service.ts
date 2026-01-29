@@ -1,4 +1,6 @@
 import supabase from '../config/supabase';
+import { SupabaseRepository } from '../repositories/SupabaseUserRepository';
+
 
 export class AuthService {
   async login(email: string, password: string) {
@@ -11,6 +13,8 @@ export class AuthService {
       throw new Error('Email ou senha inválidos');
     }
 
+    const isSupervisor = await SupabaseRepository.user.isSupervisor(data.user.id);
+
     return {
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token,
@@ -18,6 +22,7 @@ export class AuthService {
       user: {
         id: data.user.id,
         email: data.user.email,
+        role: isSupervisor ? 'supervisor' : 'promotor',
       },
     };
   }

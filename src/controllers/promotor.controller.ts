@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { PromotorService } from '../services/promotor.service';
+import { LocalizacaoService } from '../services/localizacao.service';
 
 const promotorService = new PromotorService();
+const localizacaoService = new LocalizacaoService();
 
 export class PromotorController {
   // Obtém todos os promotores
@@ -82,7 +84,7 @@ export class PromotorController {
     try {
       const { id } = req.params;
       const { lat, lng } = req.body;
-      await promotorService.updatePromotorLocation(id, lat, lng);
+      await localizacaoService.registrarLocalizacao(id, lat, lng);
       res.status(200).json({ message: 'Localização atualizada com sucesso' });
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });

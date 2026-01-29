@@ -45,22 +45,22 @@ export class LocalizacaoController {
   // Obtém a última localização de um promotor
   async getLastLocation(req: Request, res: Response): Promise<void> {
     try {
-      const { idPromotor } = req.params;
-      const location = await localizacaoService.getLastLocalizacaoByPromotor(idPromotor);
+      const { id } = req.params;
+      const location = await localizacaoService.getLastLocalizacaoByPromotor(id);
       res.status(200).json(location);
     } catch (error) {
-      res.status(500).json({ error: `Erro ao buscar última localização do promotor com ID ${req.params.idPromotor}: ${error instanceof Error ? error.message : String(error)}` });
+      res.status(500).json({ error: `Erro ao buscar última localização do promotor com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
     }
   }
 
   // Obtém o histórico de localizações de um promotor
   async getLocationHistory(req: Request, res: Response): Promise<void> {
     try {
-      const { idPromotor } = req.params;
-      const locations = await localizacaoService.getLocalizacoesHistoricoByPromotor(idPromotor);
+      const { id } = req.params;
+      const locations = await localizacaoService.getLocalizacoesHistoricoByPromotor(id);
       res.status(200).json(locations);
     } catch (error) {
-      res.status(500).json({ error: `Erro ao buscar histórico de localizações do promotor com ID ${req.params.idPromotor}: ${error instanceof Error ? error.message : String(error)}` });
+      res.status(500).json({ error: `Erro ao buscar histórico de localizações do promotor com ID ${req.params.id}: ${error instanceof Error ? error.message : String(error)}` });
     }
   }
 }

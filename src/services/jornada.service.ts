@@ -2,89 +2,58 @@ import { SupabaseRepository } from '../repositories/SupabaseUserRepository';
 import { Jornada } from '../types/jornada';
 
 export class JornadaService {
-  // Registra um novo ponto na jornada
-  async registrarPonto(promotorId: string) {
-    // 1️⃣ Verifica se já existe jornada ativa
-    const jornadaAtiva =
-      await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
-
+  async iniciarJornada(promotorId: string): Promise<Jornada> {
+    const jornadaAtiva = await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
     if (jornadaAtiva) {
-      throw new Error('Já existe uma jornada ativa');
+      throw new Error('Já existe uma jornada ativa para este promotor.');
     }
 
-    // 2️⃣ Cria nova jornada
-    return await SupabaseRepository.jornada.registrarPonto({
+    const novaJornada = await SupabaseRepository.jornada.create({
       promotor_id: promotorId,
       status: 'ativo',
     });
+
+    await SupabaseRepository.promotores.update(promotorId, { statusJornada: 'ativo' });
+
+    return novaJornada;
   }
 
-  // Finaliza a jornada ativa do promotor
-async finalizarJornada(promotorId: string): Promise<Jornada> {
-  // 1️⃣ Busca jornada ativa
-  const jornadaAtiva =
-    await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
-
-  if (!jornadaAtiva) {
-    throw new Error('Não existe jornada ativa para este promotor');
-  }
-
-  // 2️⃣ Finaliza a jornada encontrada
-  return await SupabaseRepository.jornada.finalizarJornada(jornadaAtiva.id);
-}
-
-  // Status atual da jornada
-async status(id: string): Promise<Jornada | null> {
-  try {
-    const jornadaAtiva = await SupabaseRepository.jornada.getJornadaAtiva(id);
-
+  async finalizarJornada(promotorId: string): Promise<Jornada> {
+    const jornadaAtiva = await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
     if (!jornadaAtiva) {
-      return null; // Retorna null se não houver jornada ativa
+      throw new Error('Não existe jornada ativa para este promotor.');
     }
 
-    return jornadaAtiva; // Retorna a jornada ativa encontrada
-  } catch (error) {
-    throw new Error(
-      `Erro ao obter status da jornada com ID ${id}: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-  }
-}
+    const jornadaFinalizada = await SupabaseRepository.jornada.finalizar(jornadaAtiva.id);
 
-  // Atualiza uma jornada existente
-  async updateJornada(id: string, jornada: Omit<Jornada, 'id'>): Promise<Jornada> {
-    try {
-      return await SupabaseRepository.jornada.update(id, jornada);
-    } catch (error) {
-      throw new Error(`Erro ao atualizar jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    await SupabaseRepository.promotores.update(promotorId, { statusJornada: 'inativo' });
+
+    return jornadaFinalizada;
   }
 
-  // Obtém todas as jornadas de um promotor
-  async getJornadasByPromotor(promotorId: string): Promise<Jornada[]> {
-    try {
-      return await SupabaseRepository.jornada.getByPromotor(promotorId);
-    } catch (error) {
-      throw new Error(`Erro ao buscar jornadas do promotor com ID ${promotorId}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+  async getStatusJornada(promotorId: string): Promise<Jornada | null> {
+    return await SupabaseRepository.jornada.getJornadaAtiva(promotorId);
   }
 
-  // Obtém uma jornada específica pelo ID
   async getJornadaById(id: string): Promise<Jornada> {
-    try {
-      return await SupabaseRepository.jornada.getById(id);
-    } catch (error) {
-      throw new Error(`Erro ao buscar jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
+    const jornada = await SupabaseRepository.jornada.getById(id);
+    if (!jornada) {
+      throw new Error(`Jornada com ID ${id} não encontrada.`);
     }
+    return jornada;
   }
 
-  // Exclui uma jornada pelo ID
+  async getJornadasByPromotor(promotorId: string): Promise<Jornada[]> {
+    return await SupabaseRepository.jornada.getByPromotor(promotorId);
+  }
+
+  async updateJornada(id: string, jornadaData: Partial<Omit<Jornada, 'id'>>): Promise<Jornada> {
+    const jornada = await this.getJornadaById(id); // Re-use getById to check existence
+    return await SupabaseRepository.jornada.update(id, jornadaData);
+  }
+
   async deleteJornada(id: string): Promise<void> {
-    try {
-      await SupabaseRepository.jornada.delete(id);
-    } catch (error) {
-      throw new Error(`Erro ao excluir jornada com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    await this.getJornadaById(id); // Re-use getById to check existence
+    await SupabaseRepository.jornada.delete(id);
   }
 }

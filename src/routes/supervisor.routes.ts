@@ -16,10 +16,21 @@ const leadController = new LeadController();
 router.get('/supervisores', supervisorController.getAllSupervisors);
 router.get('/supervisores/:id', supervisorController.getSupervisorById);
 router.post('/supervisores', supervisorController.createSupervisor);
+router.put('/supervisores/:id', supervisorController.updateSupervisor);
 router.delete('/supervisores/:id', supervisorController.deleteSupervisor);
 
 // Dashboard (Supervisor autenticado)
 router.get('/dashboard', authMiddleware, supervisorController.getDashboardData);
+
+router.get(
+  '/promotores/:id/leads',
+  authMiddleware,
+  leadController.getLeadsByPromotorSupervisor
+);
+
+router.put('/leads/:id', authMiddleware, leadController.updateLead);
+
+router.delete('/leads/:id', authMiddleware, leadController.deleteLead);
 
 // Promotores (Supervisor autenticado)
 router.post('/promotores', authMiddleware, promotorController.createPromotor);

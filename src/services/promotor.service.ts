@@ -49,15 +49,6 @@ export class PromotorService {
     }
   }
 
-  // Atualiza a localização de um promotor
-  async updatePromotorLocation(id: string, lat: number, lng: number): Promise<void> {
-    try {
-      await SupabaseRepository.promotores.updateLocalizacao(id, lat, lng);
-    } catch (error) {
-      throw new Error(`Erro ao atualizar a localização do promotor com ID ${id}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
   // Exclui um promotor pelo ID
   async deletePromotor(id: string): Promise<void> {
     try {
